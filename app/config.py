@@ -18,7 +18,7 @@ def get_json():
     Returns:
         Dict -- config values
     """
-    with open("./config.json", 'r') as stream:
+    with open("./config/config.json", 'r') as stream:
         return json.load(stream)
 
 CONFIG = get_json()
