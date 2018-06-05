@@ -24,9 +24,7 @@ RUN apt-get update && apt-get install -y locales \
     && locale-gen
 RUN pip install --upgrade pip
 
-RUN mkdir ./app && mkdir ./configuration
-COPY . ./app
-WORKDIR ./app
+COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
