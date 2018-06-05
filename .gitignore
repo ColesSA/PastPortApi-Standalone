@@ -1,0 +1,7 @@
+*.cer
+*.pem
+*.crt
+*.der
+config.json
+__pycache__
+.vscode

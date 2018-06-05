@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask-restful = "==0.3.6"
+flask-sqlalchemy = "==2.3.2"
+beautifulsoup4 = "==4.6.0"
+requests = "==2.18.4"
+pyodbc = "==4.0.23"
+"urllib3" = "==1.22"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
