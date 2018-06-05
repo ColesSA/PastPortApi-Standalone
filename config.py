@@ -18,7 +18,7 @@ def get_json():
     Returns:
         Dict -- config values
     """
-    with open("./configuration/config.json", 'r') as stream:
+    with open("./config.json", 'r') as stream:
         return json.load(stream)
 
 CONFIG = get_json()
@@ -28,6 +28,6 @@ URL = CONFIG['URL']
 UID = CONFIG['UID']
 PWD = CONFIG['PWD']
 QUOTE = quote_plus(
-    'DRIVER={ODBC Driver 17 for SQL Server};SERVER='
-    +SERVER+';PORT=1433;DATABASE='+DB+';UID='+UID+';PWD='+PWD)
+    'DRIVER={SQL Server};SERVER='
+    +SERVER+';DATABASE='+DB+';UID='+UID+';PWD='+PWD)
 DB_URI = 'mssql+pyodbc:///?odbc_connect=%s' % QUOTE
