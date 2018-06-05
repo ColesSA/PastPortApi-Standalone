@@ -1,4 +1,4 @@
-# PastPort-GPS-API-Small
+# PastPortAPI - Standalone
 
 ##### URl Directory:
 - '/api/locations' --------- Returns all stored locations
