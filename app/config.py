@@ -1,4 +1,4 @@
-"""Opens private config values as class:[], global vars:[X]"""
+"""Opens private config values as class"""
 
 import json
 import logging
@@ -6,28 +6,41 @@ import sys
 
 import urllib3
 
-urllib3.disable_warnings()
-
 if sys.version_info[0] < 3:
     from urllib import quote_plus
 else:
     from urllib.parse import quote_plus
 
-def get_json():
-    """Pulls json data from config.json\n
-    Returns:
-        Dict -- config values
-    """
-    with open("./config/config.json", 'r') as stream:
-        return json.load(stream)
+urllib3.disable_warnings()
 
-CONFIG = get_json()
-SERVER = CONFIG['SERVER']
-DB = CONFIG['DB']
-URL = CONFIG['URL']
-UID = CONFIG['UID']
-PWD = CONFIG['PWD']
-QUOTE = quote_plus(
-    'DRIVER={SQL Server};SERVER='
-    +SERVER+';DATABASE='+DB+';UID='+UID+';PWD='+PWD)
-DB_URI = 'mssql+pyodbc:///?odbc_connect=%s' % QUOTE
+class Config(object):
+    with open("./config.json", 'r') as stream:
+        __vars = json.load(stream)
+
+    ENV=None
+    DEBUG=True
+    TESTING=False
+    LOGGING=True
+    URL=__vars['URL']
+    DRIVER=__vars['DRIVER']
+    SERVER=__vars['SERVER']
+    DATABASE=__vars['DB']
+    DB_UID=__vars['DB_UID']
+    DB_PWD=__vars['DB_PWD']
+    WEB_UID=__vars['WEB_UID']
+    WEB_PWD=__vars['WEB_PWD']
+    RESTFUL_JSON = {'separators': (', ', ': '),
+                    'indent': 2}
+
+    __quote = quote_plus('DRIVER='+DRIVER+
+            ';SERVER='+SERVER+';DATABASE='+DATABASE+
+            ';UID='+DB_UID+';PWD='+DB_PWD)
+    DB_URI = 'mssql+pyodbc:///?odbc_connect=%s' % __quote
+
+    if(LOGGING):
+        logging.basicConfig(level=logging.DEBUG,
+            format='[%(levelname)s] (%(threadName)-10s) %(message)s',
+                )
+        
+
+        
