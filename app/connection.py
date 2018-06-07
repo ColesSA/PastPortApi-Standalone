@@ -1,63 +1,71 @@
+"""Interface to PastPortGPS, the web-based location services for the barge
+
+Returns:
+    tuple -- coordinates of the glass barge
+"""
+
+
 import logging
+import time
+from logging.handlers import SMTPHandler
 
 import requests
 from bs4 import BeautifulSoup
+from flask.logging import default_handler
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from app.config import Config
-import app
 
-import time
+WEB=Config.WEB
+CONN=Config.CONNECTION
+ERR=Config.ERR
 
-Retry.BACKOFF_MAX = Config.BACKOFF_MAX
+Retry.BACKOFF_MAX = CONN['BACKOFF_MAX']
 
-TIME_DIFF = 0
+smtp_handler = SMTPHandler(
+    mailhost=ERR['MAIL_HOST'],
+    fromaddr=ERR['FROM_ADDR'],
+    toaddrs=ERR['TO_ADDRS'],
+    subject=ERR['SUBJECT_DEFAULT'])
+smtp_handler.setLevel(logging.ERROR)
 
-def requests_retry_session(
-    retries=2,
-    backoff_factor=0.3,
-    status_forcelist=(500, 502, 504),
-    session=None,
-):
+LOGGER = logging.getLogger('smtp')
+LOGGER.addHandler(smtp_handler)
+
+DEBUGGER = logging.getLogger('debug')
+
+def requests_retry_session(session=None):
     session = session or requests.Session()
+    __max = CONN['MAX_RETRIES']
     retry = Retry(
-        total=retries,
-        read=retries,
-        connect=retries,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist,
+        total=__max,
+        read=__max,
+        connect=__max,
+        backoff_factor=CONN['BACKOFF_FACTOR'],
+        status_forcelist=CONN['STATUS_FORCELIST'],
     )
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
     return session
 
-
 def get_secure_coords():
     t0 = time.time()
     try:
-        logging.debug(' * Getting Coordinates')
+        DEBUGGER.debug(' * Getting Coordinates')
         s = requests.Session()
-        s.auth = (Config.WEB_UID,Config.WEB_PWD)
-        req = requests_retry_session(session=s).get(Config.URL, verify=False)
+        s.auth = (WEB['UID'],WEB['PWD'])
+        req = requests_retry_session(session=s).get(WEB['URL'], verify=False)
+        req.raise_for_status()
     except Exception as x:
-        logging.error('Connection failed, {}'.format(x.__class__.__name__))
+        LOGGER.exception('Connection failed, {}'.format(x))
         return None
     else:
-        try:
-            soup = BeautifulSoup(req.content, 'html.parser').find('div', {'id': 'latlong'})
-            coords = (soup['data-latitude'],soup['data-longitude'])
-        except Exception as e:
-            logging.error('Connection Failed, {}'.format(req.status_code))
-            return None
-        else:
-            logging.debug('Connection Successful, {}'.format(req.status_code))
-            return coords
+        soup = BeautifulSoup(req.content, 'html.parser').find('div', {'id': 'latlong'})
+        coords = (soup['data-latitude'],soup['data-longitude'])
+        DEBUGGER.debug('Connection Successful, {}'.format(req.status_code))
+        return coords
     finally:
         t1 = time.time()
-        TIME_DIFF = t1-t0
-        logging.debug('Took {} seconds'.format(TIME_DIFF))
-    
-
-
+        DEBUGGER.debug('Took {} seconds'.format(t1-t0))

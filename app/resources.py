@@ -1,5 +1,4 @@
-"""All resources needed and used by the API"""
-import logging
+"""API routing and Database Connection"""
 from flask_restful import Resource, ResponseBase, fields, marshal_with
 from flask import request
 from sqlalchemy import Column, DateTime, Float, Integer, create_engine, func
@@ -9,9 +8,8 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from app.config import Config
 from app.connection import get_secure_coords
 
-import json
-
-ENGINE = create_engine(Config.DB_URI)
+DB=Config.DB
+ENGINE = create_engine(DB['URI'])
 SESSION = scoped_session(sessionmaker(autocommit=False,
                                       autoflush=False,
                                       bind=ENGINE
@@ -25,18 +23,14 @@ LOC_FIELDS = {
     'longitude': fields.Float(),
 }
 
-@marshal_with(LOC_FIELDS)
-def db_store(coords):
+def to_db(coords):
     loc = Location(coords)
     SESSION.add(loc)
     SESSION.commit() 
     return loc
 
-def store_location(coords):
-    if(isinstance(coords,tuple)):
-        return db_store(coords)
-
 class LocationsLast(Resource):
+    @marshal_with(LOC_FIELDS)
     def get(self):
         return SESSION.query(Location).order_by(-Location.id).first()
 
@@ -46,8 +40,9 @@ class LocationsList(Resource):
         return SESSION.query(Location).all()
 
 class Now(Resource):
+    @marshal_with(LOC_FIELDS)
     def get(self):
-        return store_location(get_secure_coords())
+        return to_db(get_secure_coords())
 
 class Location(BASE):
     """ORM Class Model for the Location object\n

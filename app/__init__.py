@@ -1,4 +1,4 @@
-"""Initialize app as api with resources"""
+"""Initialize API"""
 from flask import Flask
 from flask_restful import Api
 

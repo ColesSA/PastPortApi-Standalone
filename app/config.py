@@ -17,31 +17,26 @@ class Config(object):
     with open("./config.json", 'r') as stream:
         __vars = json.load(stream)
 
-    ENV=None
-    DEBUG=True
-    TESTING=False
-    LOGGING=True
-    URL=__vars['URL']
-    DRIVER=__vars['DRIVER']
-    SERVER=__vars['SERVER']
-    DATABASE=__vars['DB']
-    DB_UID=__vars['DB_UID']
-    DB_PWD=__vars['DB_PWD']
-    WEB_UID=__vars['WEB_UID']
-    WEB_PWD=__vars['WEB_PWD']
+    ENV=__vars['ENV']
+    DEBUG=__vars['DEBUG']
+    TESTING=__vars['TESTING']
+    LOGGING=__vars['LOGGING']
+    RESTFUL_JSON=__vars['RESTFUL_JSON']
     SCHEDULER_DELAY_TIME=__vars['SCHEDULER_DELAY_TIME']
-    RESTFUL_JSON={'separators': (', ', ': '),'indent': 2}
-    BACKOFF_MAX=5
+    WEB=__vars['WEB']
+    CONNECTION=WEB['CONNECTION']
+    DB= __vars['DB']
+    ERR=__vars['ERR']
 
-    __quote = quote_plus('DRIVER='+DRIVER+
-            ';SERVER='+SERVER+';DATABASE='+DATABASE+
-            ';UID='+DB_UID+';PWD='+DB_PWD)
-    DB_URI = 'mssql+pyodbc:///?odbc_connect=%s' % __quote
+    __quote = quote_plus('DRIVER='+DB['DRIVER']+
+            ';SERVER='+DB['SERVER']+';DATABASE='+DB['DATABASE']+
+            ';UID='+DB['UID']+';PWD='+DB['PWD'])
+    DB['URI'] = 'mssql+pyodbc:///?odbc_connect=%s' % __quote
 
     if(LOGGING):
-        logging.basicConfig(level=logging.DEBUG,
-            format='[%(levelname)s] (%(threadName)-10s) %(message)s',
-                )
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='[%(levelname)s] %(threadName)s: %(message)s')
         
 
         

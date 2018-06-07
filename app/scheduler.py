@@ -1,16 +1,17 @@
+"""Threaded Process that stores the Barge Location in the database in a specified time interval"""
+
+
 import threading
-import logging
-from time import sleep, time
+from time import sleep
 from app.config import Config
-from app.resources import store_location
-from app.connection import get_secure_coords, TIME_DIFF
-import requests
+from app.resources import to_db
+from app.connection import get_secure_coords, DEBUGGER
 
 def schedule():
-    logging.info(' * Starting Scheduler Thread')
+    DEBUGGER.info(' * Starting Scheduler Thread')
     while True:
-        store_location(get_secure_coords())
-        sleep(Config.SCHEDULER_DELAY_TIME-TIME_DIFF)
+        to_db(get_secure_coords())
+        sleep(Config.SCHEDULER_DELAY_TIME)
 
 SCHEDULER = threading.Thread(name='Scheduler', 
                              target=schedule, 
