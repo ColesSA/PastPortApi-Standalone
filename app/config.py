@@ -29,6 +29,7 @@ class Config(object):
     DB_PWD=__vars['DB_PWD']
     WEB_UID=__vars['WEB_UID']
     WEB_PWD=__vars['WEB_PWD']
+    SCHEDULER_DELAY_TIME=__vars['SCHEDULER_DELAY_TIME']
     RESTFUL_JSON={'separators': (', ', ': '),'indent': 2}
     BACKOFF_MAX=5
 

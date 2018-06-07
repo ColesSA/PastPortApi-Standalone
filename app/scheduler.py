@@ -1,18 +1,16 @@
 import threading
 import logging
 from time import sleep, time
+from app.config import Config
 from app.resources import store_location
-from app.connection import get_coords
+from app.connection import get_secure_coords, TIME_DIFF
+import requests
 
 def schedule():
-    logging.debug(' * Starting Scheduler Thread')
+    logging.info(' * Starting Scheduler Thread')
     while True:
-        try:
-            coords = get_coords()
-            store_location((coords['latitude'],coords['longitude']))
-            sleep(599)
-        except ConnectionError as CE:
-            logging.error(CE)
+        store_location(get_secure_coords())
+        sleep(Config.SCHEDULER_DELAY_TIME-TIME_DIFF)
 
 SCHEDULER = threading.Thread(name='Scheduler', 
                              target=schedule, 
