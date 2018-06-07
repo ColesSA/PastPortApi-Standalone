@@ -2,7 +2,8 @@
 from flask import Flask
 from flask_restful import Api
 
-from app.resources import LocationsLast, LocationsList, Now, Config
+from app.resources import LocationsLast, LocationsList, Now
+from app.config import Config
 
 APP = Flask(__name__)
 APP.config.from_object(Config)

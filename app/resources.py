@@ -1,18 +1,15 @@
 """All resources needed and used by the API"""
-
-import logging
-import threading
-from datetime import timedelta
-from time import sleep
-
 import requests
 from bs4 import BeautifulSoup
+import logging
 from flask_restful import Resource, ResponseBase, fields, marshal_with
+from flask import request
 from sqlalchemy import Column, DateTime, Float, Integer, create_engine, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from app.config import Config
+from app.connection import get_coords
 
 ENGINE = create_engine(Config.DB_URI)
 SESSION = scoped_session(sessionmaker(autocommit=False,
@@ -28,35 +25,11 @@ LOC_FIELDS = {
     'longitude': fields.Float(),
 }
 
-def get_coords():
-    with requests.get(Config.URL,
-                      verify=False, 
-                      auth=(Config.WEB_UID, Config.WEB_PWD)
-                      ) as req:
-        return BeautifulSoup(req.content, 'html.parser').find(
-            'div', {'id': 'latlong'})
-
-def store_location():
-    logging.debug(' * Getting Coordinates')
-    loc = Location(get_coords())
-    SESSION.add(loc)
-    SESSION.commit()    
-    return loc
-
-def schedule():
-    logging.debug(' * Starting Scheduler Thread')
-    while True:
-        try:
-            store_location()
-            sleep(599)
-        except ConnectionError as CE:
-            logging.error(CE)
-            SCHEDULER.start()
-
-SCHEDULER = threading.Thread(name='Scheduler', 
-                             target=schedule, 
-                             daemon=True
-                             )
+def store_location(coords):
+        loc = Location(coords)
+        SESSION.add(loc)
+        SESSION.commit() 
+        return loc
 
 class LocationsLast(Resource):
     @marshal_with(LOC_FIELDS)
@@ -70,8 +43,14 @@ class LocationsList(Resource):
 
 class Now(Resource):
     @marshal_with(LOC_FIELDS)
+
     def get(self):
-        return store_location()
+        coords = get_coords()
+        return store_location((coords['latitude'],coords['longitude']))
+        
+    @marshal_with(LOC_FIELDS)
+    def put(self):
+        return store_location((request.form['latitude'],request.form['longitude']))
 
 class Location(BASE):
     """ORM Class Model for the Location object\n
@@ -81,8 +60,7 @@ class Location(BASE):
 
     __tablename__ = 'locations'
     def __init__(self, coords):
-        self.latitude = coords['data-latitude']
-        self.longitude = coords['data-longitude']
+        self.latitude, self.longitude = coords
 
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, default=func.now())

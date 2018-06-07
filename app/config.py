@@ -29,8 +29,8 @@ class Config(object):
     DB_PWD=__vars['DB_PWD']
     WEB_UID=__vars['WEB_UID']
     WEB_PWD=__vars['WEB_PWD']
-    RESTFUL_JSON = {'separators': (', ', ': '),
-                    'indent': 2}
+    RESTFUL_JSON={'separators': (', ', ': '),'indent': 2}
+    BACKOFF_MAX=5
 
     __quote = quote_plus('DRIVER='+DRIVER+
             ';SERVER='+SERVER+';DATABASE='+DATABASE+
