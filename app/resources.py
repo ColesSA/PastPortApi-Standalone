@@ -6,7 +6,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from app.config import Config
-from app.connection import get_secure_coords
+from app.connection import safe_session, DEBUGGER, LOGGER
+
+import time
+
+from bs4 import BeautifulSoup
 
 DB=Config.DB
 ENGINE = create_engine(DB['URI'])
@@ -21,13 +25,29 @@ LOC_FIELDS = {
     'datetime': fields.DateTime(dt_format='rfc822'),
     'latitude': fields.Float(),
     'longitude': fields.Float(),
-}
+} 
 
-def to_db(coords):
-    loc = Location(coords)
-    SESSION.add(loc)
-    SESSION.commit() 
-    return loc
+class Hound(object): 
+    def get_coords():
+        t0 = time.time()
+        try:
+            DEBUGGER.debug(' * Getting Coordinates')
+            req = safe_session()
+            req.raise_for_status()
+        except Exception as x:
+            LOGGER.exception('Connection failed, {}'.format(x))
+        else:
+            DEBUGGER.debug('Connection Successful, {}'.format(req.status_code))
+            soup = BeautifulSoup(req.content, 'html.parser').find('div', {'id': 'latlong'})
+            coords = (soup['data-latitude'],soup['data-longitude'])
+            loc = Location(coords)
+            SESSION.add(loc)
+            SESSION.commit() 
+            return loc
+        finally:
+            t1 = time.time()
+            DEBUGGER.debug('Took {} seconds'.format(t1-t0))
+         
 
 class LocationsLast(Resource):
     @marshal_with(LOC_FIELDS)
@@ -42,7 +62,7 @@ class LocationsList(Resource):
 class Now(Resource):
     @marshal_with(LOC_FIELDS)
     def get(self):
-        return to_db(get_secure_coords())
+        return Hound.get_coords
 
 class Location(BASE):
     """ORM Class Model for the Location object\n

@@ -12,6 +12,7 @@ pyodbc = "==4.0.23"
 urllib3 = "==1.22"
 
 [dev-packages]
+rope = "*"
 
 [requires]
 python_version = "3.6"

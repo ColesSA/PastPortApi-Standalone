@@ -4,7 +4,6 @@ Returns:
     tuple -- coordinates of the glass barge
 """
 
-
 import logging
 import time
 from logging.handlers import SMTPHandler
@@ -50,22 +49,8 @@ def requests_retry_session(session=None):
     session.mount('https://', adapter)
     return session
 
-def get_secure_coords():
-    t0 = time.time()
-    try:
-        DEBUGGER.debug(' * Getting Coordinates')
-        s = requests.Session()
-        s.auth = (WEB['UID'],WEB['PWD'])
-        req = requests_retry_session(session=s).get(WEB['URL'], verify=False)
-        req.raise_for_status()
-    except Exception as x:
-        LOGGER.exception('Connection failed, {}'.format(x))
-        return None
-    else:
-        soup = BeautifulSoup(req.content, 'html.parser').find('div', {'id': 'latlong'})
-        coords = (soup['data-latitude'],soup['data-longitude'])
-        DEBUGGER.debug('Connection Successful, {}'.format(req.status_code))
-        return coords
-    finally:
-        t1 = time.time()
-        DEBUGGER.debug('Took {} seconds'.format(t1-t0))
+def safe_session():
+    s = requests.Session()
+    s.auth = (WEB['UID'],WEB['PWD'])
+    req = requests_retry_session(session=s).get(WEB['URL'], verify=False)
+    return req
