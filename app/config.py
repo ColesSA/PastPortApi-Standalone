@@ -6,6 +6,8 @@ import sys
 
 import urllib3
 
+from urllib3.util.retry import Retry
+
 if sys.version_info[0] < 3:
     from urllib import quote_plus
 else:
@@ -37,6 +39,9 @@ class Config(object):
         logging.basicConfig(
             level=logging.DEBUG,
             format='[%(levelname)s] %(threadName)s: %(message)s')
+        logging.getLogger('flask_cors').level = logging.DEBUG
+
+    Retry.BACKOFF_MAX = CONNECTION['BACKOFF_MAX']
         
 
         

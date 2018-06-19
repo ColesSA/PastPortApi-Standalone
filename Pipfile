@@ -10,6 +10,7 @@ beautifulsoup4 = "==4.6.0"
 requests = "==2.18.4"
 pyodbc = "==4.0.23"
 urllib3 = "==1.22"
+flask-cors = "*"
 
 [dev-packages]
 rope = "*"

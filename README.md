@@ -1,9 +1,9 @@
 # PastPortAPI - Standalone
 
 ##### URl Directory:
-- '/api/locations' --------- Returns all stored locations
-- '/api/locations/last' ---- Returns last stored location
-- '/api/now' -------------- Stores and returns current barge location
+- '/api/v2/location/all' ----- Returns all stored locations
+- '/api/v2/location/last' ---- Returns last stored location
+- '/api/v2/location/now' ----- Stores and returns current barge location
 
 
 ##### Config Structure:
