@@ -1,3 +1,6 @@
+"""Contains the ORM Class Models for Database Objects"""
+
+
 from flask_restful import fields
 from sqlalchemy import Column, DateTime, Float, Integer, func
 
@@ -11,7 +14,7 @@ Loc_Fields = {
 }     
 
 class Location(Base):
-    """ORM Class Model for the Location object\n
+    """Location object ORM\n
     Arguments:
         BASE {DeclarativeMeta} -- Constructor Object Type.
     """

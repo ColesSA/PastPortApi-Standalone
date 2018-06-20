@@ -1,37 +1,42 @@
 """Threaded Process that stores the Barge Location in the database in a specified time interval"""
 
-
+import os
 import threading
 from time import sleep
 
-import app.resources
-from app.config import Config
 from app.connection import Debugger, get_coords
 from app.database import Session
-
-m, s = divmod(Config.SCHEDULER_DELAY_TIME, 60)
-h, m = divmod(m, 60)
-naptime = "%dh, %dm, %ds" % (h, m, s)
+from app.models import Location
 
 class Scheduler(object):
-    isStarted = False
+    hasRun = os.environ.get("WERKZEUG_RUN_MAIN")
 
-    def schedule():
-        while True:
-            Debugger.info('Sleeping for {}.'.format(naptime))
-            sleep(Config.SCHEDULER_DELAY_TIME)
-            get_coords()
+    def __init__(self, url, interval=60):
+        self.interval = interval - 1.5
+        self.url = url
 
-    SchedThread = threading.Thread(name='Scheduler', 
-                             target=schedule, 
-                             daemon=True
-                             )    
+        self.thread = threading.Thread(target=self.schedule)
+        self.thread.name='Scheduler'
+        self.thread.daemon=True  
 
     def safe_start(self):
-        if(self.isStarted):
+        if(self.hasRun):
             Debugger.debug('Scheduler already instantiated. Aborting start attempt.')
             return
         else:
             Debugger.info('Starting Scheduler Thread')
-            self.isStarted = True
-            self.SchedThread.start()
+            self.thread.start()
+
+    def schedule(self):
+        while True:
+            self.wait(self.interval)
+            now = Location(get_coords(self.url))
+            Session.add(now)
+            Session.commit()
+
+    def wait(self, interval):
+        m, s = divmod(interval, 60)
+        h, m = divmod(m, 60)
+        naptime = "%dh, %dm, %ds" % (h, m, s)
+        Debugger.debug('Sleeping for {}.'.format(naptime))
+        sleep(interval)
