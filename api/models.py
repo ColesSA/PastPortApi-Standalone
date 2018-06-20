@@ -4,7 +4,7 @@
 from flask_restful import fields
 from sqlalchemy import Column, DateTime, Float, Integer, func
 
-from app.database import Base
+from api.database import Base
 
 Loc_Fields = {
     'id': fields.Integer,
@@ -20,8 +20,8 @@ class Location(Base):
     """
 
     __tablename__ = 'locations'
-    def __init__(self, coords):
-        self.latitude, self.longitude = coords
+    def __init__(self, coordinateTuple):
+        self.latitude, self.longitude = coordinateTuple
 
     id = Column(Integer, primary_key=True)
     datetime = Column(DateTime, default=func.now())

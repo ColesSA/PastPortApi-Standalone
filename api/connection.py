@@ -10,9 +10,9 @@ from flask.logging import default_handler
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-import app
-
-Debugger = logging.getLogger('debug')
+import api
+from api.database import Session
+from api.models import Location
 
 class SafeSession(object):
     """Wrapper class around a requests session that integrates error handling and effective retries."""
@@ -58,43 +58,33 @@ class SafeSession(object):
         self.auth = (uid,pwd)
         self.verify = verify
 
-    def get(self, url):
-        """Wrapper around requests 'get' function.
+    def current_location_to_database(self, url):
+        """Uses safe session to obtain a coordinate tuple of the current barge location.
         
         Arguments:
-            url {str} -- URL to send GET request to.
-        
+            url {str} -- URL of the PastPortGPS router interface.
+
         Returns:
-            requests Response object -- The 'GET' response.
+            Location -- Instance of Location object representing current barge location.
         """
         t0 = time.time()
         s = requests.Session()
         s.auth = self.auth
-        Debugger.debug('Establishing Connection')
+        logging.debug('Establishing Connection')
         try:
             req = self.requests_retry_session(session=s).get(url, verify=self.verify)
             req.raise_for_status()
         except Exception as x:
-            app.logger.exception('Connection failed, {}'.format(x))
+            logging.exception('Connection failed, {}'.format(x))
         else:
-            Debugger.debug('Connection Successful, {}'.format(req.status_code))
-            return req
+            logging.debug('Connection Successful, {}'.format(req.status_code))
+            soup = BeautifulSoup(req.content, 'html.parser').find('div', {'id': 'latlong'})
+            coords = (soup['data-latitude'],soup['data-longitude'])
+            location = Location(coords)
+            Session.add(location)
+            Session.commit()
+            return location
         finally:
             t1 = time.time()
-            Debugger.debug('Took {} seconds'.format(t1-t0))
-
-
-def get_coords(url):
-    """Get the coordinates of the barge's current location
+            logging.debug('Took {} seconds'.format(t1-t0))
     
-    Arguments:
-        url {str} -- URL of the PastPortGPS router interface.
-    
-    Returns:
-        tuple -- (float:latitude,float:longitude)
-    """
-
-    request = app.sess.get(url)
-    soup = BeautifulSoup(request.content, 'html.parser').find('div', {'id': 'latlong'})
-    coords = (soup['data-latitude'],soup['data-longitude'])
-    return coords

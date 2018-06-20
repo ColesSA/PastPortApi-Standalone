@@ -2,13 +2,16 @@
 
 import os
 import threading
+import logging
 from time import sleep
 
-from app.connection import Debugger, get_coords
-from app.database import Session
-from app.models import Location
+import api
+from api.database import Session
+from api.models import Location
 
 class Scheduler(object):
+    """Thread to handle regular bachground fetching of barge location from PaastPort."""
+
     hasRun = os.environ.get("WERKZEUG_RUN_MAIN")
 
     def __init__(self, url, interval=60):
@@ -21,22 +24,20 @@ class Scheduler(object):
 
     def safe_start(self):
         if(self.hasRun):
-            Debugger.debug('Scheduler already instantiated. Aborting start attempt.')
+            logging.debug('Scheduler already instantiated. Aborting start attempt.')
             return
         else:
-            Debugger.info('Starting Scheduler Thread')
+            logging.info('Starting Scheduler Thread')
             self.thread.start()
 
     def schedule(self):
         while True:
             self.wait(self.interval)
-            now = Location(get_coords(self.url))
-            Session.add(now)
-            Session.commit()
+            api.sess.current_location_to_database(self.url)
 
     def wait(self, interval):
         m, s = divmod(interval, 60)
         h, m = divmod(m, 60)
         naptime = "%dh, %dm, %ds" % (h, m, s)
-        Debugger.debug('Sleeping for {}.'.format(naptime))
+        logging.debug('Sleeping for {}.'.format(naptime))
         sleep(interval)

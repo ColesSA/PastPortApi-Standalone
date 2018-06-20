@@ -4,12 +4,13 @@ import logging
 from logging.handlers import SMTPHandler
 
 from flask import Flask
+from flask.logging import default_handler
 from flask_restful import Api
 
-from app.config import Config
-from app.connection import SafeSession
-from app.resources import LocationNow, LocationsLast, LocationsList
-from app.scheduler import Scheduler
+from api.config import Config
+from api.connection import SafeSession
+from api.resources import LocationNow, LocationsLast, LocationsList
+from api.scheduler import Scheduler
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -30,12 +31,20 @@ sess = SafeSession(Config.CONNECTION['MAX_RETRIES'],
 
 sess.set_security_info(Config.WEB['UID'], Config.WEB['PWD'], Config.WEB['VERIFICATION'])
 
-smtp_handler = SMTPHandler(
-    mailhost=Config.ERR['MAIL_HOST'],
-    fromaddr=Config.ERR['FROM_ADDR'],
-    toaddrs=Config.ERR['TO_ADDRS'],
-    subject=Config.ERR['SUBJECT_DEFAULT'])
-smtp_handler.setLevel(logging.ERROR)
+if(Config.LOGGING):
+    smtp_handler = SMTPHandler(
+        mailhost=Config.ERR['MAIL_HOST'],
+        fromaddr=Config.ERR['FROM_ADDR'],
+        toaddrs=Config.ERR['TO_ADDRS'],
+        subject=Config.ERR['SUBJECT_DEFAULT'])
+    smtp_handler.setLevel(logging.ERROR)
 
-if not app.debug:
-    app.logger.addHandler(smtp_handler)
+    for logger in (
+        logging.getLogger(),
+        logging.getLogger('sqlalchemy'),
+        logging.getLogger('flask_cors'),
+        logging.getLogger('click'),
+    ):
+        logger.level = logging.DEBUG if Config.DEBUG else logging.ERROR
+        logger.addHandler(default_handler)
+        logger.addHandler(smtp_handler)

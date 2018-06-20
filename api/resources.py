@@ -3,10 +3,10 @@
 
 from flask_restful import Resource, ResponseBase, fields, marshal_with
 
-from app.database import Session
-from app.config import Config
-from app.connection import get_coords
-from app.models import Loc_Fields, Location
+import api
+from api.database import Session
+from api.config import Config
+from api.models import Loc_Fields, Location
 
 class LocationsLast(Resource):
     @marshal_with(Loc_Fields)
@@ -21,7 +21,5 @@ class LocationsList(Resource):
 class LocationNow(Resource):
     @marshal_with(Loc_Fields)
     def get(self):
-        now = Location(get_coords(Config.WEB['URL']))
-        Session.add(now)
-        Session.commit()
+        now = api.sess.current_location_to_database(Config.WEB['URL'])
         return now

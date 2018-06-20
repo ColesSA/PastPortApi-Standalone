@@ -1,6 +1,6 @@
 """API Runable"""
 
-from app import app, sched
+from api import app, sched
 
 sched.safe_start()
 app.run()

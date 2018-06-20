@@ -1,7 +1,6 @@
 """Opens private config values as class"""
 
 import json
-import logging
 import sys
 
 import urllib3
@@ -22,6 +21,7 @@ class Config(object):
     DEBUG=__vars['DEBUG']
     TESTING=__vars['TESTING']
     LOGGING=__vars['LOGGING']
+    SERVER_NAME = __vars['SERVER_NAME']
     RESTFUL_JSON=__vars['RESTFUL_JSON']
     SCHEDULER_DELAY_TIME=__vars['SCHEDULER_DELAY_TIME']
     WEB=__vars['WEB']
@@ -32,12 +32,6 @@ class Config(object):
     __quote = quote_plus('DRIVER='+DB['DRIVER']+
             ';SERVER='+DB['SERVER']+';DATABASE='+DB['DATABASE']+
             ';UID='+DB['UID']+';PWD='+DB['PWD'])
-    DB['URI'] = 'mssql+pyodbc:///?odbc_connect=%s' % __quote
-
-    if(LOGGING):
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='[%(levelname)s] %(threadName)s: %(message)s')
-        logging.getLogger('flask_cors').level = logging.DEBUG
+    DB['URI'] = 'mssql+pyodbc:///?odbc_connect=%s' % __quote        
 
     Retry.BACKOFF_MAX = CONNECTION['BACKOFF_MAX']
