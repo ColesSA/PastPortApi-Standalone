@@ -14,14 +14,14 @@ else:
 urllib3.disable_warnings()
 
 class Config(object):
-    with open("./config.json", 'r') as stream:
+    """Object to control and format configuration variables"""
+    with open("./config/config.json", 'r') as stream:
         __vars = json.load(stream)
 
     ENV=__vars['ENV']
     DEBUG=__vars['DEBUG']
     TESTING=__vars['TESTING']
     LOGGING=__vars['LOGGING']
-    SERVER_NAME = __vars['SERVER_NAME']
     RESTFUL_JSON=__vars['RESTFUL_JSON']
     SCHEDULER_DELAY_TIME=__vars['SCHEDULER_DELAY_TIME']
     WEB=__vars['WEB']

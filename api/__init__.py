@@ -25,11 +25,12 @@ api.add_resource(LocationNow, '/api/v2/location/now')
 
 sched = Scheduler(Config.WEB['URL'], Config.SCHEDULER_DELAY_TIME)
 
-sess = SafeSession(Config.CONNECTION['MAX_RETRIES'], 
+conn = SafeSession(Config.WEB['UID'], 
+                   Config.WEB['PWD'], 
+                   Config.WEB['VERIFICATION'],
+                   Config.CONNECTION['MAX_RETRIES'], 
                    Config.CONNECTION['BACKOFF_FACTOR'], 
                    Config.CONNECTION['STATUS_FORCELIST'])
-
-sess.set_security_info(Config.WEB['UID'], Config.WEB['PWD'], Config.WEB['VERIFICATION'])
 
 if(Config.LOGGING):
     smtp_handler = SMTPHandler(

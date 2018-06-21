@@ -10,7 +10,7 @@ from api.database import Session
 from api.models import Location
 
 class Scheduler(object):
-    """Thread to handle regular bachground fetching of barge location from PaastPort."""
+    """Thread to handle regular bachground fetching of barge location from PastPort."""
 
     hasRun = os.environ.get("WERKZEUG_RUN_MAIN")
 
@@ -23,6 +23,7 @@ class Scheduler(object):
         self.thread.daemon=True  
 
     def safe_start(self):
+        """Instantiates a Scheduler that will regularly store the barge location into the database"""
         if(self.hasRun):
             logging.debug('Scheduler already instantiated. Aborting start attempt.')
             return
@@ -31,11 +32,16 @@ class Scheduler(object):
             self.thread.start()
 
     def schedule(self):
+        """Loop that waits, then collects and stores location"""
         while True:
             self.wait(self.interval)
-            api.sess.current_location_to_database(self.url)
+            api.conn.current_location(self.url)
 
     def wait(self, interval):
+        """Sleeps the thread for the interval of time given
+
+        Arguments:
+            interval {int} -- interval (in seconds) to sleep the thread"""
         m, s = divmod(interval, 60)
         h, m = divmod(m, 60)
         naptime = "%dh, %dm, %ds" % (h, m, s)
