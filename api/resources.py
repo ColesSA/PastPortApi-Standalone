@@ -5,8 +5,8 @@ from flask_restful import Resource, marshal_with
 
 import api
 from api.config import Config
-from api.database import Session
-from api.models import Loc_Fields, Location
+from api.database import session, to_database
+from api.models import Loc_Fields, Location, Coordinate
 
 class LocationsLast(Resource):
     """Last location stored in the database
@@ -21,7 +21,7 @@ class LocationsLast(Resource):
         Returns:
             json -- location
         """
-        return Session.query(Location).order_by(-Location.id).first()
+        return session.query(Location).order_by(-Location.id).first()
 
 class LocationsList(Resource):
     """All locations stored in the database
@@ -36,7 +36,7 @@ class LocationsList(Resource):
         Returns:
             json -- location list
         """
-        return Session.query(Location).all()
+        return session.query(Location).all()
 
 class LocationNow(Resource):
     """Stores the current location into the database
@@ -51,5 +51,7 @@ class LocationNow(Resource):
         Returns:
             json -- location
         """
-        now = api.conn.current_location(Config.WEB['URL'])
-        return now
+        _response = api.conn.get_from(Config.WEB['URL'])
+        _coordinate = Coordinate.from_request(_response)
+        _location = Location.get_new(_coordinate)
+        return to_database(_location)

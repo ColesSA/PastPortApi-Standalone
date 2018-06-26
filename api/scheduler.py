@@ -6,8 +6,9 @@ import logging
 from time import sleep
 
 import api
-from api.database import Session
-from api.models import Location
+from api.config import Config
+from api.models import Location, Coordinate
+from api.database import to_database
 
 class Scheduler(object):
     """Thread to handle regular bachground fetching of barge location from PastPort."""
@@ -35,7 +36,12 @@ class Scheduler(object):
         """Loop that waits, then collects and stores location"""
         while True:
             self.wait(self.interval)
-            api.conn.current_location(self.url)
+            _response = api.conn.get_from(Config.WEB['URL'])
+            _coordinate = Coordinate.from_request(_response)
+            _location = Location.get_new(_coordinate)
+            to_database(_location)
+            break
+        self.schedule()
 
     def wait(self, interval):
         """Sleeps the thread for the interval of time given

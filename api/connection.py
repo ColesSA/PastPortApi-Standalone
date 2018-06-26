@@ -8,6 +8,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from api.logger import time_function
 from api.models import Location
 
 class SafeSession(object):
@@ -80,4 +81,25 @@ class SafeSession(object):
         finally:
             _t1 = time.time()
             logging.debug('Took %d seconds', (_t1-_t0))
-    
+
+    @time_function
+    def get_from(self, url):
+        """Runs a get request to a safe session
+        
+        Arguments:
+            url {str} -- URL to be sent get request
+
+        Returns:
+            response {Response} -- Requests response object
+        """
+        _s = requests.Session()
+        _s.auth = self.auth
+        logging.debug('Establishing Connection')
+        try:
+            _req = self.requests_retry_session(session=_s).get(url, verify=self.verify)
+            _req.raise_for_status()
+        except Exception as _x:
+            logging.exception('Connection failed: %s', (_x))
+        else:
+            logging.debug('Connection Successful: %s', (_req.status_code))
+            return _req

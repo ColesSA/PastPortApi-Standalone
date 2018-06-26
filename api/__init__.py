@@ -42,7 +42,6 @@ if(Config.LOGGING):
 
     for logger in (
         logging.getLogger(),
-        logging.getLogger('sqlalchemy'),
         logging.getLogger('flask_cors'),
         logging.getLogger('click'),
     ):
